@@ -495,6 +495,8 @@
 .mcArt img{object-position:center 26%!important;}
 .mcLab{font-size:clamp(10px,1.7vw,14px)!important;padding:0 6px;}
 .mcSub{font-size:clamp(7px,1.2vw,10px)!important;margin:3px 0 2px!important;}
+.mcProg{font-size:clamp(7px,1.1vw,9px);color:var(--m-sub);margin-top:4px;font-weight:600;letter-spacing:.5px;}
+.mcProg b{color:var(--m-acc);font-weight:800;}
 .modeCard{border-radius:18px!important;}
 /* progress strip minimap */
 #modeDetail #miniMap{height:auto!important;min-height:0!important;padding:12px 12px 8px;border-radius:14px!important;}
@@ -2371,7 +2373,7 @@ function showStory(i){const st=STORY[i];if(!st)return;state='story';
   const tx=e('storyLines');if(tx)tx.innerHTML=st.lines.map(l=>'<p>'+l+'</p>').join('');
   const gf=e('storyGift');if(gf)gf.textContent='🎁 보상: 특수무기 '+st.gift;
   e('storyScreen').classList.remove('hidden');}
-function closeStory(){e('storyScreen').classList.add('hidden');state='play';
+function closeStory(){if(!player)return;e('storyScreen').classList.add('hidden');state='play';
   const st=STORY[stageIndex];if(st){companion={st,x:player.x-3,z:player.z+1.4,healT:3};} // she joins you for the road ahead
   openShop();}
 function bossDie(){slowT=0.6;
@@ -2563,7 +2565,7 @@ function buildMapNodes(){const field=e('mapField');if(!field)return;field.innerH
   setTimeout(()=>{mk.style.left=to.x+'%';mk.style.top=to.y+'%';mapFocus=tierIndex(pendingStage);focusWorld();},120); // then pan to the destination continent
   const tr=tierOf(pendingStage);if(inf)inf.innerHTML='다음 목적지 ▶ <b style="color:'+tr.c+'">'+tr.n+' · '+THEME_KO[LEVELS[pendingStage].theme]+'</b> · BOSS '+LEVELS[pendingStage].boss.name+'  ('+(pendingStage+1)+'/'+LEVELS.length+')';const zb=e('mapZoom');if(zb)zb.textContent='🔍 전체 보기';}
 function startStageAt(i){pendingStage=-1;e('mapTip').style.display='none';e('mapScreen').classList.add('hidden');buildStage(i,false);state='play';}
-function mapGo(){if(mapMode==='hub'){e('mapScreen').classList.add('hidden');state='menu';e('startScreen').classList.remove('hidden');buildMeta();return;}const n=pendingStage;pendingStage=-1;e('mapScreen').classList.add('hidden');buildStage(n,false);state='play';}
+function mapGo(){if(mapMode==='hub'){e('mapScreen').classList.add('hidden');state='menu';e('startScreen').classList.remove('hidden');buildMeta();return;}if(pendingStage<0||pendingStage>=LEVELS.length)return;const n=pendingStage;pendingStage=-1;e('mapScreen').classList.add('hidden');buildStage(n,false);state='play';}
 function wIcon(k){const c={mg:'#ffcf3f',shotgun:'#ffd27a',laser:'#9fe8ff',blade:'#cfd6e0',hp:'#5ad15a',life:'#ff6a6a',spuse:'#ff8a5c',cap:'#9fe8ff'}[k]||'#ffcf3f';let b='';
   if(k==='mg')b='<rect x="3" y="3" width="2" height="8" fill="'+c+'"/><rect x="11" y="3" width="2" height="8" fill="'+c+'"/><rect x="3" y="2" width="10" height="2" fill="'+c+'"/><rect x="6" y="4" width="1" height="7" fill="#fff4c8"/><rect x="9" y="4" width="1" height="7" fill="#fff4c8"/><rect x="7" y="11" width="2" height="3" fill="'+c+'"/>';
   else if(k==='shotgun')b='<rect x="3" y="5" width="10" height="3" fill="#3a3a42"/><rect x="5" y="8" width="6" height="4" fill="#3a3a42"/><rect x="4" y="6" width="8" height="1" fill="'+c+'"/><rect x="6" y="12" width="4" height="2" fill="'+c+'"/>';
@@ -2674,7 +2676,24 @@ function buildDex(){const gd=e('dexGrid');if(!gd)return;gd.innerHTML='';const de
 {const hb=e('hubBtn');if(hb)hb.addEventListener('click',()=>{S.init&&S.init();e('chapterScreen').classList.add('hidden');openHub();});}
 // ---------- STEP FLOW: hero -> expedition -> keys -> go ----------
 let pendingStart=null;
-function showStep(id){['startScreen','chapterScreen','keyScreen'].forEach(k=>{const el=e(k);if(el)el.classList.toggle('hidden',k!==id);});}
+{const gb=e('goBtn');if(gb)gb.addEventListener('click',()=>{S.init();S.pick();
+  const ps2=pendingStart||{dk:'easy'};pendingStart=null;
+  e('keyScreen').classList.add('hidden');e('chapterScreen').classList.add('hidden');
+  if(ps2.idx!==undefined)startAt(ps2.dk,ps2.idx);else startGame(ps2.dk);});}
+{const kb=e('keyBack');if(kb)kb.addEventListener('click',()=>{e('keyScreen').classList.add('hidden');showStep('chapterScreen');});}
+{const cb2=e('chapBack');if(cb2)cb2.addEventListener('click',()=>{S.pick();showStep('startScreen');});}
+{const tt=e('toTitleBtn');if(tt)tt.addEventListener('click',()=>{['endScreen','shopScreen','pauseScreen','mapScreen'].forEach(k=>{const x=e(k);if(x)x.classList.add('hidden');});
+  state='menu';previewGroup.visible=true;heroRing.visible=true;showStep('startScreen');});}
+function chapProgress(d){const R={easy:[0,3],normal:[3,6],hard:[6,9],odys:[9,10],map:[0,10]}[d];if(!R)return null;
+  let st=0,cl=0,tot=(R[1]-R[0]);
+  for(let i=R[0];i<R[1];i++){const r=SAVE.records&&SAVE.records[i];if(r){cl++;st+=(r.st||0);}}
+  return {st,mx:tot*3,cl,tot};}
+function updateModeProgress(){document.querySelectorAll('.modeCard').forEach(mc=>{
+  let pr=mc.querySelector('.mcProg');if(!pr){pr=document.createElement('div');pr.className='mcProg';mc.appendChild(pr);}
+  const g2=chapProgress(mc.dataset.d);if(!g2){pr.textContent='';return;}
+  pr.innerHTML=(g2.cl>=g2.tot?'✅ ':'')+'<b>★'+g2.st+'/'+g2.mx+'</b> · '+g2.cl+'/'+g2.tot+' 클리어';});}
+function showStep(id){['startScreen','chapterScreen','keyScreen'].forEach(k=>{const el=e(k);if(el)el.classList.toggle('hidden',k!==id);});
+  if(id==='chapterScreen')updateModeProgress();} // cards double as a progress dashboard
 {const hn=e('heroNext');if(hn)hn.addEventListener('click',()=>{S.init();S.pick();buildMeta();fillChapDetail();showStep('chapterScreen');});}
 function buildMiniMap(){const mm=e('miniMap');if(!mm)return;mm.innerHTML='';
   const cols=['#7ee255','#f2c14e','#ff7a5c','#b98aff'];
