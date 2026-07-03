@@ -465,6 +465,54 @@
 #netHud{border-radius:10px!important;border:1px solid var(--m-stroke)!important;background:var(--m-bg)!important;backdrop-filter:blur(8px);}
 /* ============ end v8 ============ */
 
+/* ============ UI SKIN v9 — expedition screen, finished ============ */
+#chapterScreen .title{font-size:clamp(18px,3.2vw,30px)!important;}
+#metaStat,#oracleLine{background:var(--m-bg);border:1px solid var(--m-stroke);border-radius:999px;padding:6px 18px!important;
+  font-size:clamp(8px,1.3vw,11px)!important;backdrop-filter:blur(8px);}
+#oracleLine{border-color:rgba(185,166,232,.35)!important;}
+/* card art: cinematic render window instead of pastel blocks */
+.mcArt{background:#0e1220!important;padding:0!important;height:72px!important;position:relative;overflow:hidden;}
+.mcArt img{width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block;transform:scale(1.06);transition:transform .18s;}
+.modeCard:hover .mcArt img{transform:scale(1.14);}
+.mcArt::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(10,12,20,.72) 100%);pointer-events:none;}
+.mcArt svg{position:relative;z-index:0;}
+.modeCard{padding:0 0 10px!important;overflow:hidden;}
+.modeCard .mcArt{border-radius:16px 16px 0 0!important;margin:0 0 8px!important;box-shadow:none!important;}
+/* upgrade row: proper store chips */
+#upgRow button{border-radius:14px!important;padding:10px 8px!important;line-height:1.7;}
+#upgRow button b,#upgRow button span{font-weight:800;}
+#upgRow button:not([disabled]):hover{border-color:var(--m-acc)!important;color:var(--m-acc)!important;}
+#upgRow button[disabled]{opacity:.42;}
+.playbtn{padding:15px 0!important;letter-spacing:8px!important;font-size:clamp(14px,2.3vw,19px)!important;border-radius:18px!important;}
+#modeDetail{gap:10px!important;}
+#chapBack{border-radius:999px!important;padding:11px 26px!important;}
+/* ============ end v9 ============ */
+
+/* ============ UI SKIN v10 — expedition overhaul ============ */
+/* bigger cinematic cards */
+#modeGrid{gap:13px!important;flex:1.35!important;min-width:340px!important;}
+.mcArt{height:104px!important;}
+.mcArt img{object-position:center 26%!important;}
+.mcLab{font-size:clamp(10px,1.7vw,14px)!important;padding:0 6px;}
+.mcSub{font-size:clamp(7px,1.2vw,10px)!important;margin:3px 0 2px!important;}
+.modeCard{border-radius:18px!important;}
+/* progress strip minimap */
+#modeDetail #miniMap{height:auto!important;min-height:0!important;padding:12px 12px 8px;border-radius:14px!important;}
+.mmRow{display:flex;align-items:center;width:100%;}
+.mmLn{flex:1;height:2.5px;border-radius:99px;margin:0 -1px;}
+.mmNd{width:22px;height:22px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:900;flex:0 0 auto;box-shadow:0 3px 8px rgba(0,0,0,.4);}
+.mmNd.cur{box-shadow:0 0 0 3px rgba(242,193,78,.35),0 0 14px var(--m-glow);animation:mmpulse 1.5s ease-in-out infinite;}
+@keyframes mmpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
+.mmCap{margin-top:8px;font-size:8px;letter-spacing:1px;color:var(--m-sub);display:flex;gap:10px;justify-content:center;font-weight:700;}
+/* upgrade chips: real store items */
+#upgRow{max-width:640px!important;gap:10px!important;}
+#upgRow button{display:flex;flex-direction:column;gap:3px;align-items:center;font-size:clamp(8px,1.3vw,10px)!important;}
+#upgRow button:not([disabled]){border-color:rgba(242,193,78,.35)!important;}
+/* ============ end v10 ============ */
+
+
+
 
 
 
@@ -688,12 +736,12 @@ renderer.shadowMap.enabled=false;
 app.appendChild(renderer.domElement);
 const FOG_FAR=MOBILE?90:120,FAR=MOBILE?160:220; // pull draw distance in on mobile so fewer instances render
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc88a);
-scene.fog=new THREE.Fog(0x9fc88a,42,FOG_FAR);
+scene.fog=new THREE.Fog(0x9fc88a,MOBILE?58:70,FOG_FAR+30); // haze pushed back — the battlefield reads crisp
 const camera=new THREE.PerspectiveCamera(55,window.innerWidth/window.innerHeight,0.1,FAR);
 camera.position.set(-7,6,11);
-const amb=new THREE.AmbientLight(0xbfd9c0,0.55);scene.add(amb);
-const hemi=new THREE.HemisphereLight(0xcfe8ff,0x5a4a34,0.5);scene.add(hemi); // sky bounce + warm ground bounce
-const sun=new THREE.DirectionalLight(0xfff2dc,1.0);sun.position.set(-8,18,10);scene.add(sun);
+const amb=new THREE.AmbientLight(0xbfd9c0,0.42);scene.add(amb); // less wash, more contrast
+const hemi=new THREE.HemisphereLight(0xcfe8ff,0x5a4a34,0.38);scene.add(hemi); // sky bounce + warm ground bounce
+const sun=new THREE.DirectionalLight(0xfff2dc,1.12);sun.position.set(-8,18,10);scene.add(sun);
 const fill=new THREE.DirectionalLight(0x9fc8ff,0.22);fill.position.set(10,8,-8);scene.add(fill); // cool rim fill
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
 
@@ -2034,10 +2082,11 @@ function physics(dt){{const hd=e('hud');if(hd){const on=(state==='play'||state==
       boss.mt=(boss.mt||0)+dt;const _bd=p.x-boss.x,_ad=Math.abs(_bd);
       const _pref=(boss.type==='archer'||boss.type==='crone')?16:(boss.type==='woodhorse'||boss.type==='cyclops'||boss.type==='hydra')?11:8.5;
       const _gait=(boss.type==='cerberus'||boss.type==='lion')?3.4:(boss.type==='champion'||boss.type==='medusa')?2.4:1.5;
-      boss.x+=Math.sign(_bd)*Math.max(-1,Math.min(1,(_ad-_pref)*0.4))*_gait*dt;
+      const _fr2=(boss.phase>=boss.phases.length-1&&boss.phases.length>=3)?1.5:1; // frenzy: relentless
+      boss.x+=Math.sign(_bd)*Math.max(-1,Math.min(1,(_ad-_pref)*0.4))*_gait*_fr2*dt;
       boss.x=Math.max(p.x+3.5,Math.min(stage.len+12,boss.x)); // never lets the hero slip behind
-      const _wz=Math.sin(boss.mt*(boss.type==='medusa'?1.1:0.7))*(boss.type==='cerberus'?3.0:2.2);
-      boss.z+=(_wz-boss.z)*0.8*dt;
+      if(_ad>_pref+4){const _wz=Math.sin(boss.mt*0.8)*2.4;boss.z+=(_wz-boss.z)*0.8*dt;} // far: circling prowl
+      else boss.z+=(p.z-boss.z)*Math.min(1,2.6*_fr2*dt); // in range: SQUARE UP — attacks come head-on
       const _hv=(boss.type==='cyclops'||boss.type==='woodhorse'||boss.type==='hydra');
       if(boss.type!=='crone'){boss.stepT=(boss.stepT||0)-dt; // footfalls scale with distance (the crone floats silent)
         if(boss.stepT<=0){boss.stepT=_hv?0.55:(boss.type==='lion'||boss.type==='cerberus')?0.27:0.42;
@@ -2058,7 +2107,10 @@ function physics(dt){{const hd=e('hud');if(hd){const on=(state==='play'||state==
       else if(boss.heads<7){boss.heads++;boss.flash=0.4;bannerT=1.5;bannerText='🐍 히드라의 머리가 분열했다! ('+boss.heads+'개) — 불로 지져라!';
         if(bossMesh){const k=boss.heads-4;bossMesh.traverse(o=>{if(o.name==='xh'+k||o.name==='xe'+k)o.visible=true;});}}}
     if(boss.windT>0){boss.windT-=dt;} // telegraph windup: hold still
-    else if(boss.dashT>0){boss.x+=boss.dvx*dt;boss.z+=boss.dvz*dt;boss.dashT-=dt;} // lunge/charge
+    else if(boss.dashT>0){boss.x+=boss.dvx*dt;boss.z+=boss.dvz*dt;boss.dashT-=dt;
+      if(frameCount%3===0)fx(boss.x,0.4,boss.z,-boss.dvx*0.15,1.5,-boss.dvz*0.15,0.28,0.26,0xd2c4a8); // charge dust
+      if(boss.dashT<=0){boss.cd=Math.max(boss.cd,0.6);boss.stagT=0.55; // overextended: a golden opening
+        for(let _k4=0;_k4<6;_k4++)fx(boss.x+(Math.random()-0.5)*2,1+Math.random()*2,boss.z,(Math.random()-0.5)*4,2,(Math.random()-0.5)*2,0.35,0.2,0xfff2c8);}} // lunge/charge
     else{const dx=p.x-boss.x;if(dx>9)boss.x+=2.2*dt;else if(dx<7)boss.x-=1.6*dt;boss.z+=Math.sign(p.z-boss.z)*Math.min(Math.abs(p.z-boss.z),1.5*dt);}
     const nph=boss.phases[boss.phase+1];if(nph&&(boss.hp/boss.maxhp<=nph.at||(nph.tsec&&boss.t>=nph.tsec)))phaseShift();
     if(boss.windT<=0&&boss.dashT<=0){let bcd=boss.cd-dt;if(bcd<=0){const pat=boss.patterns[boss.pi];bossFire(boss,pat);boss.reps--;bcd=pat.cd;
@@ -2391,7 +2443,12 @@ function render(){
       playerBlob.position.set(player.x,0.03,player.z);playerBlob.scale.set(1.5*_sh,0.02,1.2*_sh);playerBlob.material.opacity=0.26*_sh;}
     if(boss&&bossMesh){const _bb=(boss.type==='crone')?0.35+Math.sin(frameCount*0.05)*0.25:0; // the crone hovers
       bossMesh.position.set(boss.x,_bb,boss.z);bossMesh.rotation.y=Math.atan2(p.x-boss.x,p.z-boss.z);
-      const _bs2=1+Math.sin(frameCount*0.06)*0.014;bossMesh.scale.set(stage.boss.scale*_bs2,stage.boss.scale*(2-_bs2),stage.boss.scale*_bs2); // breathing
+      if(boss.stagT>0)boss.stagT-=0.0166;
+      const _sc0=stage.boss.scale;
+      if(boss.windT>0){const _sq=1-Math.min(0.14,boss.windT*0.14);bossMesh.scale.set(_sc0*(2-_sq),_sc0*_sq,_sc0*(2-_sq));bossMesh.rotation.x=-0.08;} // crouch: something's coming
+      else if(boss.dashT>0){bossMesh.scale.set(_sc0,_sc0,_sc0);bossMesh.rotation.x=0.3;} // full-tilt charge lean
+      else if(boss.stagT>0){bossMesh.rotation.x=-0.18;bossMesh.rotation.z=Math.sin(frameCount*0.5)*0.05;const _bs3=1+Math.sin(frameCount*0.06)*0.014;bossMesh.scale.set(_sc0*_bs3,_sc0*(2-_bs3),_sc0*_bs3);} // staggered wobble
+      else{bossMesh.rotation.x=0;bossMesh.rotation.z=0;const _bs2=1+Math.sin(frameCount*0.06)*0.014;bossMesh.scale.set(_sc0*_bs2,_sc0*(2-_bs2),_sc0*_bs2);} // breathing
       if(boss.flash>0){if(!boss._fl){setFlash(bossMesh,true);boss._fl=true;}}else if(boss._fl){setFlash(bossMesh,false);boss._fl=false;}}
     if(bossIntroT>0&&boss&&bossMesh){const _pr=1-bossIntroT/2.4,_a=Math.PI*0.95-_pr*1.5; // sweeping reveal around the boss
       camera.position.set(boss.x+Math.sin(_a)*11,3.0+_pr*2.6,boss.z+Math.cos(_a)*11);
@@ -2619,31 +2676,32 @@ function buildDex(){const gd=e('dexGrid');if(!gd)return;gd.innerHTML='';const de
 let pendingStart=null;
 function showStep(id){['startScreen','chapterScreen','keyScreen'].forEach(k=>{const el=e(k);if(el)el.classList.toggle('hidden',k!==id);});}
 {const hn=e('heroNext');if(hn)hn.addEventListener('click',()=>{S.init();S.pick();buildMeta();fillChapDetail();showStep('chapterScreen');});}
-function buildMiniMap(){const mm=e('miniMap');if(!mm)return;mm.innerHTML='';const cols=['#5ad15a','#ffc23c','#ff6a4a','#b07aff'];
-  const ns='http://www.w3.org/2000/svg';const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 100 40');svg.setAttribute('preserveAspectRatio','none');svg.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
-  let pts='';MAPPOS.forEach(q=>{pts+=(q[0]+6)+','+(q[1]*0.38+4)+' ';});
-  const pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',pts.trim());pl.setAttribute('fill','none');pl.setAttribute('stroke','rgba(255,207,63,.5)');pl.setAttribute('stroke-width','0.7');pl.setAttribute('stroke-dasharray','1.6 1.4');svg.appendChild(pl);mm.appendChild(svg);
-  for(let b2=0;b2<4;b2++){const band=document.createElement('div');band.style.cssText='position:absolute;left:1.5%;right:1.5%;height:22%;top:'+(2+b2*24)+'%;border-radius:8px;border:1px dashed '+cols[b2]+'66;background:linear-gradient(90deg,'+cols[b2]+'22,'+cols[b2]+'05);';mm.appendChild(band);}
-  MAPPOS.forEach((q,i)=>{const open=i<=SAVE.unlocked;const dot=document.createElement('div');
-    dot.style.cssText='position:absolute;width:9px;height:9px;border-radius:50%;transform:translate(-50%,-50%);left:'+(q[0]+6)+'%;top:'+(q[1]*0.95+10)+'%;border:1.5px solid '+cols[i<3?0:i<6?1:i<9?2:3]+';background:'+(open?cols[i<3?0:i<6?1:i<9?2:3]:'rgba(0,0,0,.5)')+';box-shadow:0 0 6px '+(open?cols[i<3?0:i<6?1:i<9?2:3]+'aa':'transparent')+';';
-    mm.appendChild(dot);});
-  const cap=document.createElement('div');cap.textContent='⚐ 영웅의 여정 — 네메아에서 이타카까지';cap.style.cssText='position:absolute;right:8px;bottom:4px;font-size:6px;color:#cdbf95;opacity:.85;';mm.appendChild(cap);}
-{const cb=e('chapBack');if(cb)cb.addEventListener('click',()=>{S.pick();showStep('startScreen');});}
-{const kb=e('keyBack');if(kb)kb.addEventListener('click',()=>{S.pick();showStep('chapterScreen');});}
-{const gb=e('goBtn');if(gb)gb.addEventListener('click',()=>{S.init();const ps=pendingStart||{dk:'easy'};e('keyScreen').classList.add('hidden');
-  try{if(ps.idx!=null)startAt(ps.dk,ps.idx);else startGame(ps.dk);}
-  catch(err){showErr('[GO] '+err.message+'\n'+String(err.stack||'').split('\n').slice(0,6).join('\n'));}});}
-e('again').addEventListener('click',toTitle);
-e('resumeBtn').addEventListener('click',togglePause);
-e('toTitleBtn').addEventListener('click',toTitle);
-const CH_INFO={
-  easy:{t:'CH1 — 헤라클레스의 12과업',d:'네메아 숲 → 레르나 늪 → 저승 입구.<br>과업 괴물 9종 + 사자·히드라·케르베로스.<br><b>입문 난이도 · 튜토리얼 포함</b>',ml:'CH1 헤라클레스의 12과업 — 네메아 숲에서 출발'},
-  normal:{t:'CH2 — 페르세우스와 메두사',d:'회색 산 → 메두사 신전 → 케토스의 바다.<br>방패 가드로 석화의 시선을 막아라!<br><b>중급 난이도 · 안드로메다 구출</b>',ml:'CH2 페르세우스와 메두사 — 회색 산에서 출발'},
-  hard:{t:'CH3 — 아킬레우스와 트로이 전쟁',d:'트로이 성 → 목마 평원 → 전화의 들.<br>헥토르 결투, 목마 거상, 파리스의 화살.<br><b>상급 난이도 · 브리세이스 구출</b>',ml:'CH3 트로이 전쟁 — 트로이 폴리스에서 출발'},
-  odys:{t:'CH4 — 오디세우스의 귀향 (최종)',d:'세이렌의 노래를 점프로 떨치고,<br>스킬라·카리브디스 해협을 돌파해<br><b>폴리페모스</b>와 최후의 결전!',ml:'CH4 오디세우스의 귀향 — 세이렌 해협을 지나 폴리페모스에게'},
-  map:{t:'월드맵 — 자유 원정',d:'해금한 모든 스테이지에 자유롭게 도전.<br>점수 기록을 경신해 보세요!',ml:''}};
+function buildMiniMap(){const mm=e('miniMap');if(!mm)return;mm.innerHTML='';
+  const cols=['#7ee255','#f2c14e','#ff7a5c','#b98aff'];
+  const row=document.createElement('div');row.className='mmRow';mm.appendChild(row);
+  for(let i=0;i<10;i++){const ch2=i<3?0:i<6?1:i<9?2:3,open=i<=SAVE.unlocked,done=SAVE.records&&SAVE.records[i];
+    if(i>0){const ln=document.createElement('div');ln.className='mmLn';ln.style.background=open?cols[ch2]:'rgba(255,255,255,.12)';row.appendChild(ln);}
+    const nd=document.createElement('div');nd.className='mmNd'+(i===SAVE.unlocked?' cur':'');
+    nd.style.borderColor=cols[ch2];
+    nd.style.background=done?cols[ch2]:(open?'rgba(255,255,255,.1)':'rgba(0,0,0,.4)');
+    nd.textContent=i+1;nd.style.color=done?'#10131c':(open?'#fff':'#555');
+    row.appendChild(nd);}
+  const cap=document.createElement('div');cap.className='mmCap';
+  cap.innerHTML='<span style="color:#7ee255;">● CH1</span> <span style="color:#f2c14e;">● CH2</span> <span style="color:#ff7a5c;">● CH3</span> <span style="color:#b98aff;">● CH4</span>';
+  mm.appendChild(cap);}
 let chapSel='easy';
-function fillChapDetail(){const inf=CH_INFO[chapSel];const ct=e('cdTitle');if(ct)ct.textContent=inf.t;const cd2=e('cdDesc');if(cd2)cd2.innerHTML=inf.d;
+const CH_INFO={
+  easy:{t:'CH1 — 헤라클레스의 12과업',ml:'입문 원정 · 12과업의 숲으로',
+    d:'네메아 숲 → 레르나 늪 → 저승 입구.<br>과업 괴물 9종 + 사자·히드라·케르베로스.<br>입문 난이도 · 튜토리얼 포함'},
+  normal:{t:'CH2 — 메두사의 저주',ml:'중급 원정 · 고르곤의 바다로',
+    d:'회색 자매의 동굴 → 고르곤의 신전 → 폭풍의 바다.<br>보스: 그라이아이·메두사·케토스.<br>중급 난이도 · 반사 가드 훈련장'},
+  hard:{t:'CH3 — 트로이 전쟁',ml:'상급 원정 · 불타는 트로이로',
+    d:'스카만드로스 평원 → 트로이 성벽 → 왕궁.<br>보스: 헥토르·목마 거상·파리스.<br>상급 난이도 · 전쟁의 한복판'},
+  odys:{t:'CH4 — 귀향: 오디세이아',ml:'최종 원정 · 외눈 거인의 섬으로',
+    d:'10년의 항해, 마지막 관문.<br>최종 보스: 폴리페모스.<br>최고 난이도 · 영웅의 자격을 증명하라'},
+  map:{t:'월드맵 — 자유 원정',ml:'자유 원정 · 원하는 땅으로',
+    d:'정복한 모든 스테이지를 자유롭게 재도전.<br>별점·기록 갱신, 12과업 사냥, 보스 러시.<br>기록 위에 기록을 쌓아라'}};
+function fillChapDetail(){const inf=CH_INFO[chapSel]||CH_INFO.easy;const ct=e('cdTitle');if(ct)ct.textContent=inf.t;const cd2=e('cdDesc');if(cd2)cd2.innerHTML=inf.d;
   const pb=e('playBtn');if(pb)pb.textContent=(chapSel==='map')?'🗺 월드맵 열기':'플레이';buildMiniMap();}
 document.querySelectorAll('.modeCard').forEach(mc=>mc.addEventListener('click',()=>{S.init();S.pick();chapSel=mc.dataset.d;
   document.querySelectorAll('.modeCard').forEach(x=>{x.classList.toggle('sel',x===mc);const bg=x.querySelector('.mcBadge');if(bg)bg.style.display=(x===mc)?'':'none';});
@@ -2651,9 +2709,9 @@ document.querySelectorAll('.modeCard').forEach(mc=>mc.addEventListener('click',(
 {const pb=e('playBtn');if(pb)pb.addEventListener('click',()=>{S.init();S.pick();
   if(chapSel==='map'){e('chapterScreen').classList.add('hidden');openHub();return;}
   pendingStart=(chapSel==='odys')?{dk:'hard',idx:9}:{dk:chapSel};
-  const m=e('missionLine');if(m)m.textContent='⚔ '+CHARS[selChar].name+' · '+CH_INFO[chapSel].ml;
+  const m=e('missionLine');if(m)m.textContent='⚔ '+CHARS[selChar].name+' · '+(CH_INFO[chapSel]||CH_INFO.easy).ml;
   showStep('keyScreen');});}
-const PORTRAITS=[],BOSS_PORT=[];
+const PORTRAITS=[],BOSS_PORT=[],BOSS_BUST=[];
 function buildPortraits(){try{
   if(!renderer.domElement||!renderer.domElement.toDataURL)return; // headless/legacy: fall back to pixel faces
   const ps=new THREE.Scene();ps.background=new THREE.Color(0x141a28);
@@ -2670,15 +2728,22 @@ function buildPortraits(){try{
     bm.traverse(o=>{if(o.isSprite)o.visible=false;});ps.add(bm);
     _bb2.setFromObject(bm);_bb2.getSize(_sz);const d2=Math.max(_sz.x,_sz.y)*1.15+3;
     pc.position.set(0.6,_sz.y*0.62,d2);pc.lookAt(0,_sz.y*0.48,0);
-    renderer.render(ps,pc);BOSS_PORT[st2]=renderer.domElement.toDataURL('image/png');ps.remove(bm);}
+    renderer.render(ps,pc);BOSS_PORT[st2]=renderer.domElement.toDataURL('image/png');
+    pc.position.set(0.35,_sz.y*0.8,Math.max(_sz.x,_sz.y)*0.62+1.6);pc.lookAt(0,_sz.y*0.72,0); // BUST: lean in on the face
+    renderer.render(ps,pc);BOSS_BUST[st2]=renderer.domElement.toDataURL('image/png');ps.remove(bm);}
   renderer.setSize(innerWidth,innerHeight,false);
-}catch(_){PORTRAITS.length=0;BOSS_PORT.length=0;}}
+}catch(_){PORTRAITS.length=0;BOSS_PORT.length=0;BOSS_BUST.length=0;}}
 const SKINS=['olympus','bronze','dark'],SKIN_KO={olympus:'올림포스 금장',bronze:'청동기',dark:'암흑 신화'};
 function applySkin(){document.body.dataset.skin=SAVE.skin||'olympus';const b=e('skinBtn');if(b)b.textContent='🏺 '+SKIN_KO[SAVE.skin||'olympus'];}
 {const cb=e('coopBtn');if(cb)cb.addEventListener('click',()=>{S.init();startCoop();});}
 {const sb=e('skinBtn');if(sb)sb.addEventListener('click',()=>{const i=(SKINS.indexOf(SAVE.skin||'olympus')+1)%SKINS.length;SAVE.skin=SKINS[i];persist();S.init&&S.init();S.pick&&S.pick();applySkin();});}
 applySkin();
 buildPortraits(); // capture living 3D portraits before the cards are dealt
+function dressModeCards(){const MAP2={easy:1,normal:4,hard:6,odys:9}; // CH1은 히드라가 간판
+  document.querySelectorAll('.modeCard').forEach(mc=>{const st2=MAP2[mc.dataset.d];
+    if(st2!==undefined&&BOSS_BUST[st2]){const art=mc.querySelector('.mcArt');
+      if(art)art.innerHTML='<img src="'+BOSS_BUST[st2]+'" alt="">';}});}
+dressModeCards();
 buildCards();buildMeta();buildPlayerMesh(selChar);
 })();
 </script>
